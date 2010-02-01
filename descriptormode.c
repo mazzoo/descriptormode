@@ -53,6 +53,23 @@ struct flash_component {
 	uint8_t  invalid_instr3;
 } fcba;
 
+struct flash_region {
+	uint32_t FLREG0; /* Flash Descriptor */
+	uint32_t FLREG1; /* BIOS */
+	uint32_t FLREG2; /* ME   */
+	uint32_t FLREG3; /* GbE  */
+
+	/* information from above (redundantly kept here) */
+	uint32_t reg0_limit;
+	uint32_t reg0_base;
+	uint32_t reg1_limit;
+	uint32_t reg1_base;
+	uint32_t reg2_limit;
+	uint32_t reg2_base;
+	uint32_t reg3_limit;
+	uint32_t reg3_base;
+} frba;
+
 void gather_FDBAR(void)
 {
 	fdbar.FLVALSIG = fm[0];
@@ -96,7 +113,6 @@ void dump_FDBAR(void)
 	printf("\n");
 	printf("0x%2.2x        MSL   MCH Strap Length\n", fdbar.MSL  );
 	printf("0x%8.8x  FMSBA Flash MCH Strap Base Address\n", fdbar.FMSBA);
-	printf("\n");
 }
 
 void gather_FCBA(void)
@@ -120,7 +136,6 @@ void gather_FCBA(void)
 
 void dump_FCBA(void)
 {
-
 	char * str_freq[8] = {
 		"20 MHz",
 		"33 MHz",
@@ -167,7 +182,43 @@ void dump_FCBA(void)
 	printf("0x%2.2x        invalid instr 1\n", fcba.invalid_instr1);
 	printf("0x%2.2x        invalid instr 2\n", fcba.invalid_instr2);
 	printf("0x%2.2x        invalid instr 3\n", fcba.invalid_instr3);
+}
+
+void gather_FRBA(void)
+{
+	frba.FLREG0 = fm[(fdbar.FRBA >> 4) + 0];
+	frba.FLREG1 = fm[(fdbar.FRBA >> 4) + 1];
+	frba.FLREG2 = fm[(fdbar.FRBA >> 4) + 2];
+	frba.FLREG3 = fm[(fdbar.FRBA >> 4) + 3];
+
+	frba.reg0_limit = (frba.FLREG0 >>  4) & 0x01fff000;
+	frba.reg0_base  = (frba.FLREG0 << 12) & 0x01fff000;
+	frba.reg1_limit = (frba.FLREG1 >>  4) & 0x01fff000;
+	frba.reg1_base  = (frba.FLREG1 << 12) & 0x01fff000;
+	frba.reg2_limit = (frba.FLREG2 >>  4) & 0x01fff000;
+	frba.reg2_base  = (frba.FLREG2 << 12) & 0x01fff000;
+	frba.reg3_limit = (frba.FLREG3 >>  4) & 0x01fff000;
+	frba.reg3_base  = (frba.FLREG3 << 12) & 0x01fff000;
+}
+
+void dump_FRBA(void)
+{
 	printf("\n");
+	printf("=== FRBA ===\n");
+	printf("FLREG0   0x%8.8x\n", frba.FLREG0);
+	printf("FLREG1   0x%8.8x\n", frba.FLREG1);
+	printf("FLREG2   0x%8.8x\n", frba.FLREG2);
+	printf("FLREG3   0x%8.8x\n", frba.FLREG3);
+	printf("\n");
+	printf("--- FRBA details ---\n");
+	printf("0x%8.8x  region 0 limit\n", frba.reg0_limit);
+	printf("0x%8.8x  region 0 base \n", frba.reg0_base );
+	printf("0x%8.8x  region 1 limit\n", frba.reg1_limit);
+	printf("0x%8.8x  region 1 base \n", frba.reg1_base );
+	printf("0x%8.8x  region 2 limit\n", frba.reg2_limit);
+	printf("0x%8.8x  region 2 base \n", frba.reg2_base );
+	printf("0x%8.8x  region 3 limit\n", frba.reg3_limit);
+	printf("0x%8.8x  region 3 base \n", frba.reg3_base );
 }
 
 void usage(void)
@@ -196,9 +247,11 @@ int main(int argc, char ** argv)
 
 	gather_FDBAR();
 	gather_FCBA();
+	gather_FRBA();
 
 	dump_FDBAR();
 	dump_FCBA();
+	dump_FRBA();
 	return 0;
 }
 
