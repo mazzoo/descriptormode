@@ -70,6 +70,40 @@ struct flash_region {
 	uint32_t reg3_base;
 } frba;
 
+struct flash_master {
+	uint32_t FLMSTR1;
+	uint32_t FLMSTR2;
+	uint32_t FLMSTR3;
+
+	/* information from above (redundantly kept here) */
+	uint8_t  BIOS_GbE_write;
+	uint8_t  BIOS_ME_write;
+	uint8_t  BIOS_BIOS_write;
+	uint8_t  BIOS_descr_write;
+	uint8_t  BIOS_GbE_read;
+	uint8_t  BIOS_ME_read;
+	uint8_t  BIOS_BIOS_read;
+	uint8_t  BIOS_descr_read;
+
+	uint8_t  ME_GbE_write;
+	uint8_t  ME_ME_write;
+	uint8_t  ME_BIOS_write;
+	uint8_t  ME_descr_write;
+	uint8_t  ME_GbE_read;
+	uint8_t  ME_ME_read;
+	uint8_t  ME_BIOS_read;
+	uint8_t  ME_descr_read;
+
+	uint8_t  GbE_GbE_write;
+	uint8_t  GbE_ME_write;
+	uint8_t  GbE_BIOS_write;
+	uint8_t  GbE_descr_write;
+	uint8_t  GbE_GbE_read;
+	uint8_t  GbE_ME_read;
+	uint8_t  GbE_BIOS_read;
+	uint8_t  GbE_descr_read;
+} fmba;
+
 void gather_FDBAR(void)
 {
 	fdbar.FLVALSIG = fm[0];
@@ -117,17 +151,17 @@ void dump_FDBAR(void)
 
 void gather_FCBA(void)
 {
-	fcba.FLCOMP = fm[(fdbar.FCBA >> 4) + 0];
-	fcba.FLILL  = fm[(fdbar.FCBA >> 4) + 1];
+	fcba.FLCOMP = fm[(fdbar.FCBA >> 2) + 0];
+	fcba.FLILL  = fm[(fdbar.FCBA >> 2) + 1];
 
 	fcba.freq_read_id   = (fcba.FLCOMP >> 27) & 0x07;
 	fcba.freq_write     = (fcba.FLCOMP >> 24) & 0x07;
 	fcba.freq_fastread  = (fcba.FLCOMP >> 21) & 0x07;
 	fcba.fastread       = (fcba.FLCOMP >> 20) & 0x01;
 	fcba.freq_read      = (fcba.FLCOMP >> 17) & 0x07;
-	fcba.comp1_density  = (fcba.FLCOMP >>  3) & 0x07;
-	fcba.comp2_density  = (fcba.FLCOMP >>  0) & 0x07;
-                            
+	fcba.comp2_density  = (fcba.FLCOMP >>  3) & 0x07;
+	fcba.comp1_density  = (fcba.FLCOMP >>  0) & 0x07;
+
 	fcba.invalid_instr0 = (fcba.FLILL  >> 24) & 0xff;
 	fcba.invalid_instr1 = (fcba.FLILL  >> 16) & 0xff;
 	fcba.invalid_instr2 = (fcba.FLILL  >>  8) & 0xff;
@@ -169,7 +203,7 @@ void dump_FCBA(void)
 		fcba.freq_write   , str_freq[fcba.freq_write   ]);
 	printf("0x%2.2x        freq_fastread %s\n",
 		fcba.freq_fastread, str_freq[fcba.freq_fastread]);
-	printf("0x%2.2x        fastread      %s supported\n",
+	printf("0x%2.2x        fastread      %ssupported\n",
 		fcba.fastread, fcba.fastread ? "" : "not ");
 	printf("0x%2.2x        freq_read     %s\n",
 		fcba.freq_read, str_freq[fcba.freq_read    ]);
@@ -186,10 +220,10 @@ void dump_FCBA(void)
 
 void gather_FRBA(void)
 {
-	frba.FLREG0 = fm[(fdbar.FRBA >> 4) + 0];
-	frba.FLREG1 = fm[(fdbar.FRBA >> 4) + 1];
-	frba.FLREG2 = fm[(fdbar.FRBA >> 4) + 2];
-	frba.FLREG3 = fm[(fdbar.FRBA >> 4) + 3];
+	frba.FLREG0 = fm[(fdbar.FRBA >> 2) + 0];
+	frba.FLREG1 = fm[(fdbar.FRBA >> 2) + 1];
+	frba.FLREG2 = fm[(fdbar.FRBA >> 2) + 2];
+	frba.FLREG3 = fm[(fdbar.FRBA >> 2) + 3];
 
 	frba.reg0_limit = (frba.FLREG0 >>  4) & 0x01fff000;
 	frba.reg0_base  = (frba.FLREG0 << 12) & 0x01fff000;
@@ -221,6 +255,76 @@ void dump_FRBA(void)
 	printf("0x%8.8x  region 3 base \n", frba.reg3_base );
 }
 
+void gather_FMBA(void)
+{
+	fmba.FLMSTR1 = fm[(fdbar.FMBA >> 2) + 0];
+	fmba.FLMSTR2 = fm[(fdbar.FMBA >> 2) + 1];
+	fmba.FLMSTR3 = fm[(fdbar.FMBA >> 2) + 2];
+
+	fmba.BIOS_GbE_write   = (fmba.FLMSTR1 >> 27) & 0x01;
+	fmba.BIOS_ME_write    = (fmba.FLMSTR1 >> 26) & 0x01;
+	fmba.BIOS_BIOS_write  = (fmba.FLMSTR1 >> 25) & 0x01;
+	fmba.BIOS_descr_write = (fmba.FLMSTR1 >> 24) & 0x01;
+	fmba.BIOS_GbE_read    = (fmba.FLMSTR1 >> 19) & 0x01;
+	fmba.BIOS_ME_read     = (fmba.FLMSTR1 >> 18) & 0x01;
+	fmba.BIOS_BIOS_read   = (fmba.FLMSTR1 >> 17) & 0x01;
+	fmba.BIOS_descr_read  = (fmba.FLMSTR1 >> 16) & 0x01;
+
+	fmba.ME_GbE_write     = (fmba.FLMSTR2 >> 27) & 0x01;
+	fmba.ME_ME_write      = (fmba.FLMSTR2 >> 26) & 0x01;
+	fmba.ME_BIOS_write    = (fmba.FLMSTR2 >> 25) & 0x01;
+	fmba.ME_descr_write   = (fmba.FLMSTR2 >> 24) & 0x01;
+	fmba.ME_GbE_read      = (fmba.FLMSTR2 >> 19) & 0x01;
+	fmba.ME_ME_read       = (fmba.FLMSTR2 >> 18) & 0x01;
+	fmba.ME_BIOS_read     = (fmba.FLMSTR2 >> 17) & 0x01;
+	fmba.ME_descr_read    = (fmba.FLMSTR2 >> 16) & 0x01;
+
+	fmba.GbE_GbE_write    = (fmba.FLMSTR3 >> 27) & 0x01;
+	fmba.GbE_ME_write     = (fmba.FLMSTR3 >> 26) & 0x01;
+	fmba.GbE_BIOS_write   = (fmba.FLMSTR3 >> 25) & 0x01;
+	fmba.GbE_descr_write  = (fmba.FLMSTR3 >> 24) & 0x01;
+	fmba.GbE_GbE_read     = (fmba.FLMSTR3 >> 19) & 0x01;
+	fmba.GbE_ME_read      = (fmba.FLMSTR3 >> 18) & 0x01;
+	fmba.GbE_BIOS_read    = (fmba.FLMSTR3 >> 17) & 0x01;
+	fmba.GbE_descr_read   = (fmba.FLMSTR3 >> 16) & 0x01;
+}
+
+void dump_FMBA(void)
+{
+	printf("\n");
+	printf("=== FMBA ===\n");
+	printf("FLMSTR1  0x%8.8x\n", fmba.FLMSTR1);
+	printf("FLMSTR2  0x%8.8x\n", fmba.FLMSTR2);
+	printf("FLMSTR3  0x%8.8x\n", fmba.FLMSTR3);
+
+	printf("\n");
+	printf("--- FMBA details ---\n");
+	printf("BIOS can %s write GbE\n",   fmba.BIOS_GbE_write   ? "   " : "NOT");
+	printf("BIOS can %s write ME\n",    fmba.BIOS_ME_write    ? "   " : "NOT");
+	printf("BIOS can %s write BIOS\n",  fmba.BIOS_BIOS_write  ? "   " : "NOT");
+	printf("BIOS can %s write descr\n", fmba.BIOS_descr_write ? "   " : "NOT");
+	printf("BIOS can %s read  GbE\n",   fmba.BIOS_GbE_read    ? "   " : "NOT");
+	printf("BIOS can %s read  ME\n",    fmba.BIOS_ME_read     ? "   " : "NOT");
+	printf("BIOS can %s read  BIOS\n",  fmba.BIOS_BIOS_read   ? "   " : "NOT");
+	printf("BIOS can %s read  descr\n", fmba.BIOS_descr_read  ? "   " : "NOT");
+	printf("ME   can %s write GbE\n",   fmba.ME_GbE_write   ? "   " : "NOT");
+	printf("ME   can %s write ME\n",    fmba.ME_ME_write    ? "   " : "NOT");
+	printf("ME   can %s write BIOS\n",  fmba.ME_BIOS_write  ? "   " : "NOT");
+	printf("ME   can %s write descr\n", fmba.ME_descr_write ? "   " : "NOT");
+	printf("ME   can %s read  GbE\n",   fmba.ME_GbE_read    ? "   " : "NOT");
+	printf("ME   can %s read  ME\n",    fmba.ME_ME_read     ? "   " : "NOT");
+	printf("ME   can %s read  BIOS\n",  fmba.ME_BIOS_read   ? "   " : "NOT");
+	printf("ME   can %s read  descr\n", fmba.ME_descr_read  ? "   " : "NOT");
+	printf("GbE  can %s write GbE\n",   fmba.GbE_GbE_write   ? "   " : "NOT");
+	printf("GbE  can %s write ME\n",    fmba.GbE_ME_write    ? "   " : "NOT");
+	printf("GbE  can %s write BIOS\n",  fmba.GbE_BIOS_write  ? "   " : "NOT");
+	printf("GbE  can %s write descr\n", fmba.GbE_descr_write ? "   " : "NOT");
+	printf("GbE  can %s read  GbE\n",   fmba.GbE_GbE_read    ? "   " : "NOT");
+	printf("GbE  can %s read  ME\n",    fmba.GbE_ME_read     ? "   " : "NOT");
+	printf("GbE  can %s read  BIOS\n",  fmba.GbE_BIOS_read   ? "   " : "NOT");
+	printf("GbE  can %s read  descr\n", fmba.GbE_descr_read  ? "   " : "NOT");
+}
+
 void usage(void)
 {
 	printf("no.\n");
@@ -248,10 +352,12 @@ int main(int argc, char ** argv)
 	gather_FDBAR();
 	gather_FCBA();
 	gather_FRBA();
+	gather_FMBA();
 
 	dump_FDBAR();
 	dump_FCBA();
 	dump_FRBA();
+	dump_FMBA();
 	return 0;
 }
 
