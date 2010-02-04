@@ -104,6 +104,36 @@ struct flash_master {
 	uint8_t  GbE_descr_read;
 } fmba;
 
+struct flash_strap {
+	uint32_t STRP0;
+	uint32_t STRP1;
+	uint32_t FLUMAP1;
+	uint32_t JID;
+	uint32_t VSCC;
+
+	/* information from above (redundantly kept here) */
+	uint8_t  ME_smbus_addr2;
+	uint8_t  ME_smbus_2_sel;
+	uint8_t  SPI_CS1;
+	uint8_t  GPIO12_SEL;
+	uint8_t  GLAN_PCIE_SEL;
+	uint8_t  BMC_mode;
+	uint8_t  ME_smbus_addr1;
+	uint8_t  TCO_mode;
+	uint8_t  ME_disable_A;
+	uint8_t  ME_disable_B;
+} fisba;
+
+struct flash_upper_map {
+	uint32_t FLUMAP1;
+	uint32_t JID[0xff];
+	uint32_t VSCC[0xff];
+
+	/* information from above (redundantly kept here) */
+	uint32_t VTL;
+	uint32_t VTBA;
+} flumap;
+
 void gather_FDBAR(void)
 {
 	fdbar.FLVALSIG = fm[0];
@@ -197,15 +227,15 @@ void dump_FCBA(void)
 	printf("FLILL    0x%8.8x\n", fcba.FLILL );
 	printf("\n");
 	printf("--- FCBA details ---\n");
-	printf("0x%2.2x        freq_read_id  %s\n",
+	printf("0x%2.2x        freq_read_id   %s\n",
 		fcba.freq_read_id , str_freq[fcba.freq_read_id ]);
-	printf("0x%2.2x        freq_write    %s\n",
+	printf("0x%2.2x        freq_write     %s\n",
 		fcba.freq_write   , str_freq[fcba.freq_write   ]);
-	printf("0x%2.2x        freq_fastread %s\n",
+	printf("0x%2.2x        freq_fastread  %s\n",
 		fcba.freq_fastread, str_freq[fcba.freq_fastread]);
-	printf("0x%2.2x        fastread      %ssupported\n",
+	printf("0x%2.2x        fastread       %ssupported\n",
 		fcba.fastread, fcba.fastread ? "" : "not ");
-	printf("0x%2.2x        freq_read     %s\n",
+	printf("0x%2.2x        freq_read      %s\n",
 		fcba.freq_read, str_freq[fcba.freq_read    ]);
 	printf("0x%2.2x        comp 1 density %s\n",
 		fcba.comp1_density, str_mem[fcba.comp1_density]);
@@ -245,14 +275,14 @@ void dump_FRBA(void)
 	printf("FLREG3   0x%8.8x\n", frba.FLREG3);
 	printf("\n");
 	printf("--- FRBA details ---\n");
-	printf("0x%8.8x  region 0 limit\n", frba.reg0_limit);
-	printf("0x%8.8x  region 0 base \n", frba.reg0_base );
-	printf("0x%8.8x  region 1 limit\n", frba.reg1_limit);
-	printf("0x%8.8x  region 1 base \n", frba.reg1_base );
-	printf("0x%8.8x  region 2 limit\n", frba.reg2_limit);
-	printf("0x%8.8x  region 2 base \n", frba.reg2_base );
-	printf("0x%8.8x  region 3 limit\n", frba.reg3_limit);
-	printf("0x%8.8x  region 3 base \n", frba.reg3_base );
+	printf("0x%8.8x  region 0 limit (descr)\n", frba.reg0_limit);
+	printf("0x%8.8x  region 0 base  (descr)\n", frba.reg0_base );
+	printf("0x%8.8x  region 1 limit ( BIOS)\n", frba.reg1_limit);
+	printf("0x%8.8x  region 1 base  ( BIOS)\n", frba.reg1_base );
+	printf("0x%8.8x  region 2 limit ( ME  )\n", frba.reg2_limit);
+	printf("0x%8.8x  region 2 base  ( ME  )\n", frba.reg2_base );
+	printf("0x%8.8x  region 3 limit ( GbE )\n", frba.reg3_limit);
+	printf("0x%8.8x  region 3 base  ( GbE )\n", frba.reg3_base );
 }
 
 void gather_FMBA(void)
@@ -307,22 +337,111 @@ void dump_FMBA(void)
 	printf("BIOS can %s read  ME\n",    fmba.BIOS_ME_read     ? "   " : "NOT");
 	printf("BIOS can %s read  BIOS\n",  fmba.BIOS_BIOS_read   ? "   " : "NOT");
 	printf("BIOS can %s read  descr\n", fmba.BIOS_descr_read  ? "   " : "NOT");
-	printf("ME   can %s write GbE\n",   fmba.ME_GbE_write   ? "   " : "NOT");
-	printf("ME   can %s write ME\n",    fmba.ME_ME_write    ? "   " : "NOT");
-	printf("ME   can %s write BIOS\n",  fmba.ME_BIOS_write  ? "   " : "NOT");
-	printf("ME   can %s write descr\n", fmba.ME_descr_write ? "   " : "NOT");
-	printf("ME   can %s read  GbE\n",   fmba.ME_GbE_read    ? "   " : "NOT");
-	printf("ME   can %s read  ME\n",    fmba.ME_ME_read     ? "   " : "NOT");
-	printf("ME   can %s read  BIOS\n",  fmba.ME_BIOS_read   ? "   " : "NOT");
-	printf("ME   can %s read  descr\n", fmba.ME_descr_read  ? "   " : "NOT");
-	printf("GbE  can %s write GbE\n",   fmba.GbE_GbE_write   ? "   " : "NOT");
-	printf("GbE  can %s write ME\n",    fmba.GbE_ME_write    ? "   " : "NOT");
-	printf("GbE  can %s write BIOS\n",  fmba.GbE_BIOS_write  ? "   " : "NOT");
-	printf("GbE  can %s write descr\n", fmba.GbE_descr_write ? "   " : "NOT");
-	printf("GbE  can %s read  GbE\n",   fmba.GbE_GbE_read    ? "   " : "NOT");
-	printf("GbE  can %s read  ME\n",    fmba.GbE_ME_read     ? "   " : "NOT");
-	printf("GbE  can %s read  BIOS\n",  fmba.GbE_BIOS_read   ? "   " : "NOT");
-	printf("GbE  can %s read  descr\n", fmba.GbE_descr_read  ? "   " : "NOT");
+	printf("ME   can %s write GbE\n",   fmba.ME_GbE_write     ? "   " : "NOT");
+	printf("ME   can %s write ME\n",    fmba.ME_ME_write      ? "   " : "NOT");
+	printf("ME   can %s write BIOS\n",  fmba.ME_BIOS_write    ? "   " : "NOT");
+	printf("ME   can %s write descr\n", fmba.ME_descr_write   ? "   " : "NOT");
+	printf("ME   can %s read  GbE\n",   fmba.ME_GbE_read      ? "   " : "NOT");
+	printf("ME   can %s read  ME\n",    fmba.ME_ME_read       ? "   " : "NOT");
+	printf("ME   can %s read  BIOS\n",  fmba.ME_BIOS_read     ? "   " : "NOT");
+	printf("ME   can %s read  descr\n", fmba.ME_descr_read    ? "   " : "NOT");
+	printf("GbE  can %s write GbE\n",   fmba.GbE_GbE_write    ? "   " : "NOT");
+	printf("GbE  can %s write ME\n",    fmba.GbE_ME_write     ? "   " : "NOT");
+	printf("GbE  can %s write BIOS\n",  fmba.GbE_BIOS_write   ? "   " : "NOT");
+	printf("GbE  can %s write descr\n", fmba.GbE_descr_write  ? "   " : "NOT");
+	printf("GbE  can %s read  GbE\n",   fmba.GbE_GbE_read     ? "   " : "NOT");
+	printf("GbE  can %s read  ME\n",    fmba.GbE_ME_read      ? "   " : "NOT");
+	printf("GbE  can %s read  BIOS\n",  fmba.GbE_BIOS_read    ? "   " : "NOT");
+	printf("GbE  can %s read  descr\n", fmba.GbE_descr_read   ? "   " : "NOT");
+}
+
+void gather_FISBA(void)
+{
+	fisba.STRP0 = fm[(fdbar.FISBA >> 2) + 0];
+	fisba.STRP1 = fm[(fdbar.FMSBA >> 2) + 0];
+
+	fisba.ME_smbus_addr2   = (fisba.STRP0 >> 25) & 0x7f;
+	fisba.ME_smbus_2_sel   = (fisba.STRP0 >> 23) & 0x01;
+	fisba.SPI_CS1          = (fisba.STRP0 >> 22) & 0x01;
+	fisba.GPIO12_SEL       = (fisba.STRP0 >> 20) & 0x03;
+	fisba.GLAN_PCIE_SEL    = (fisba.STRP0 >> 19) & 0x01;
+	fisba.BMC_mode         = (fisba.STRP0 >> 15) & 0x01;
+	fisba.ME_smbus_addr1   = (fisba.STRP0 >>  8) & 0x7f;
+	fisba.TCO_mode         = (fisba.STRP0 >>  7) & 0x01;
+	fisba.ME_disable_A     = (fisba.STRP0 >>  0) & 0x01;
+
+	fisba.ME_disable_B     = (fisba.STRP1 >>  0) & 0x01;
+}
+
+void dump_FISBA(void)
+{
+	char * str_GPIO12[4] = {
+		"GPIO12",
+		"LAN PHY Power Control Function (Native Output)",
+		" GLAN_DOCK# (Native Input)",
+		"invalid configuration",
+	};
+
+	printf("\n");
+	printf("=== FISBA ===\n");
+	printf("STRP0    0x%8.8x\n", fisba.STRP0);
+
+	printf("\n");
+	printf("--- FISBA details ---\n");
+	printf("ME SMBus addr2 0x%2.2x\n", fisba.ME_smbus_addr2);
+	printf("ME SMBus addr1 0x%2.2x\n", fisba.ME_smbus_addr1);
+	printf("ME SMBus Controller is connected to %s\n", fisba.ME_smbus_2_sel ? "SMLink pins" : "SMBus pins");
+	printf("SPI CS1 is used for %s\n", fisba.SPI_CS1 ? "LAN PHY Power Control Function" : "SPI Chip Select");
+	printf("GPIO12_SEL is used as %s\n", str_GPIO12[fisba.GPIO12_SEL]);
+	printf("PCIe Port 6 is used for %s\n", fisba.GLAN_PCIE_SEL ? "integrated GLAN" : "PCI Express");
+	printf("Intel AMT SMBus Controller 1 is connected to %s\n",   fisba.BMC_mode ? "SMLink" : "SMBus");
+	printf("TCO slave is on %s. Intel AMT SMBus Controller 1 is %sabled\n",
+		fisba.TCO_mode ? "SMBus" : "SMLink", fisba.TCO_mode ? "en" : "dis");
+	printf("ME A is %sabled\n", fisba.ME_disable_A ? "dis" : "en");
+
+	printf("\n");
+	printf("=== FMSBA ===\n");
+	printf("STRP1    0x%8.8x\n", fisba.STRP1);
+
+	printf("\n");
+	printf("--- FMSBA details ---\n");
+	printf("ME B is %sabled\n", fisba.ME_disable_B ? "dis" : "en");
+}
+
+void gather_FLUMAP(void) {
+	flumap.FLUMAP1 = fm[(0x0efc >> 2) + 0];
+
+	flumap.VTL  = (flumap.FLUMAP1 >> 8) & 0x00ff;
+	flumap.VTBA = (flumap.FLUMAP1 << 4) & 0x0ff0;
+
+	if ((flumap.FLUMAP1 & 0x0000ffff) == 0x0000ffff)
+		return;
+
+	int i;
+	for (i=0; i < flumap.VTL; i++)
+	{
+		flumap.JID[i]  = fm[(flumap.VTBA >> 2) + i * 2 + 0];
+		flumap.VSCC[i] = fm[(flumap.VTBA >> 2) + i * 2 + 1];
+	}
+}
+
+void dump_FLUMAP(void)
+{
+	printf("\n");
+	printf("=== FLUMAP ===\n");
+	printf("FLUMAP1  0x%8.8x\n", flumap.FLUMAP1);
+
+	printf("\n");
+	printf("--- FLUMAP details ---\n");
+	printf("VTL   0x%8.8x\n", flumap.VTL);
+	printf("VTBA  0x%8.8x\n", flumap.VTBA);
+	printf("\n");
+	int i;
+	for (i=0; i < flumap.VTL; i++)
+	{
+		printf("  JID%d  = 0x%8.8x\n", i, flumap.JID[i] );
+		printf("  VSCC%d = 0x%8.8x\n", i, flumap.VSCC[i]);
+	}
 }
 
 void usage(void)
@@ -353,11 +472,15 @@ int main(int argc, char ** argv)
 	gather_FCBA();
 	gather_FRBA();
 	gather_FMBA();
+	gather_FISBA();
+	gather_FLUMAP();
 
 	dump_FDBAR();
 	dump_FCBA();
 	dump_FRBA();
 	dump_FMBA();
+	dump_FISBA();
+	dump_FLUMAP();
 	return 0;
 }
 
