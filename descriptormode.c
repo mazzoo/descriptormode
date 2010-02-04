@@ -6,6 +6,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
+#include <errno.h>
 
 #define DESCRIPTOR_MODE_MAGIC 0x0ff0a55a
 
@@ -444,6 +446,122 @@ void dump_FLUMAP(void)
 	}
 }
 
+void dump_file_descriptor(char * fn)
+{
+	char * n = malloc(strlen(fn) + 11);
+	snprintf(n, strlen(fn) + 11, "%s.descr.bin", fn);
+	printf("\n");
+	printf("+++ dumping %s ... ", n);
+	int f = open(n, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+	if (f < 0)
+	{
+		printf("ERROR: couldn't open(%s): %s\n", n, strerror(errno));
+		exit(1);
+	}
+
+	int ret;
+	ret = write(f, &fm[frba.reg0_base >> 2], frba.reg0_limit);
+	if (ret != frba.reg0_limit)
+	{
+		printf("FAILED.\n");
+		exit(1);
+	}
+
+	printf("done.\n");
+
+	close(f);
+}
+
+void dump_file_BIOS(char * fn)
+{
+	char * n = malloc(strlen(fn) + 10);
+	snprintf(n, strlen(fn) + 10, "%s.BIOS.bin", fn);
+	printf("\n");
+	printf("+++ dumping %s ... ", n);
+	int f = open(n, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+	if (f < 0)
+	{
+		printf("ERROR: couldn't open(%s): %s\n", n, strerror(errno));
+		exit(1);
+	}
+
+	int ret;
+	ret = write(f, &fm[frba.reg1_base >> 2], frba.reg1_limit);
+	if (ret != frba.reg1_limit)
+	{
+		printf("FAILED.\n");
+		exit(1);
+	}
+
+	printf("done.\n");
+
+	close(f);
+}
+
+void dump_file_ME(char * fn)
+{
+	char * n = malloc(strlen(fn) + 8);
+	snprintf(n, strlen(fn) + 8, "%s.ME.bin", fn);
+	printf("\n");
+	printf("+++ dumping %s ... ", n);
+	int f = open(n, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+	if (f < 0)
+	{
+		printf("ERROR: couldn't open(%s): %s\n", n, strerror(errno));
+		exit(1);
+	}
+
+	int ret;
+	ret = write(f, &fm[frba.reg2_base >> 2], frba.reg2_limit);
+	if (ret != frba.reg2_limit)
+	{
+		printf("FAILED.\n");
+		exit(1);
+	}
+
+	printf("done.\n");
+
+	close(f);
+}
+
+void dump_file_GbE(char * fn)
+{
+	char * n = malloc(strlen(fn) + 9);
+	snprintf(n, strlen(fn) + 9, "%s.GbE.bin", fn);
+	printf("\n");
+	printf("+++ dumping %s ... ", n);
+	int f = open(n, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+	if (f < 0)
+	{
+		printf("ERROR: couldn't open(%s): %s\n", n, strerror(errno));
+		exit(1);
+	}
+
+	int ret;
+	ret = write(f, &fm[frba.reg3_base >> 2], frba.reg3_limit);
+	if (ret != frba.reg3_limit)
+	{
+		printf("FAILED.\n");
+		exit(1);
+	}
+
+	printf("done.\n");
+
+	close(f);
+}
+
+void dump_files(char * f)
+{
+	if (frba.reg0_limit)
+		dump_file_descriptor(f);
+	if (frba.reg1_limit)
+		dump_file_BIOS(f);
+	if (frba.reg2_limit)
+		dump_file_ME(f);
+	if (frba.reg3_limit)
+		dump_file_GbE(f);
+}
+
 void usage(void)
 {
 	printf("no.\n");
@@ -481,6 +599,9 @@ int main(int argc, char ** argv)
 	dump_FMBA();
 	dump_FISBA();
 	dump_FLUMAP();
+
+	dump_files(argv[1]);
+
 	return 0;
 }
 
