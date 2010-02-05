@@ -546,12 +546,22 @@ void dump_file_GbE(char * fn)
 	}
 
 	printf("done.\n");
+	uint8_t * pMAC = (uint8_t *) &fm[frba.reg3_base >> 2];
+	printf("the MAC-address might be: %2.2x:%2.2x:%2.2x:%2.2x:%2.2x:%2.2x\n",
+		pMAC[0],
+		pMAC[1],
+		pMAC[2],
+		pMAC[3],
+		pMAC[4],
+		pMAC[5]
+		);
 
 	close(f);
 }
 
 void dump_files(char * f)
 {
+	printf("=== dumping section files ===\n");
 	if (frba.reg0_limit)
 		dump_file_descriptor(f);
 	if (frba.reg1_limit)
