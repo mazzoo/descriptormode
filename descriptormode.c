@@ -1,3 +1,14 @@
+/*
+ * dump information and binaries from BIOS images that are in descriptor mode/soft-strap
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * authors:
+ * (c) 2010  Matthias Wenzel <bios at mazzoo dot de>
+ *
+ * */
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
