@@ -575,6 +575,16 @@ void dump_files(char * f)
 void usage(void)
 {
 	printf("no.\n");
+	printf("\n");
+	printf("usage: descriptormode bios_image.bin\n");
+	printf("\n");
+	printf("\twhere bios_image.bin isn't actually a BIOS image, but the SPI flash\n");
+	printf("\tcontents of the SPI connected to your intel ICH southbridge.\n");
+	printf("\tin case that image is really in descriptor mode (a.k.a soft-strap)\n");
+	printf("\tdescriptormode will dump all ICH8 (and later) relevant information.\n");
+	printf("\talso some sections are dumped to files, such as the real BIOS image\n");
+	printf("\tas the CPU gets it or e.g. a GbE blob that is required to initialize\n");
+	printf("\tyour ICH GbE.\n");
 	exit(1);
 }
 
