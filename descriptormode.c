@@ -147,13 +147,8 @@ struct flash_upper_map {
 	uint32_t VTBA;
 } flumap;
 
-void gather_FDBAR(void)
+void unpack_FDBAR(void)
 {
-	fdbar.FLVALSIG = fm[0];
-	fdbar.FLMAP0   = fm[1];
-	fdbar.FLMAP1   = fm[2];
-	fdbar.FLMAP2   = fm[3];
-
 	fdbar.NR    = (fdbar.FLMAP0 >> 24) & 0x07;
 	fdbar.FRBA  = (fdbar.FLMAP0 >> 12) & 0x00000ff0;
 	fdbar.NC    = (fdbar.FLMAP0 >>  8) & 0x03;
@@ -166,6 +161,16 @@ void gather_FDBAR(void)
 
 	fdbar.MSL   =  fdbar.FLMAP2 >>  8;
 	fdbar.FMSBA = (fdbar.FLMAP2 <<  4) & 0x00000ff0;
+}
+
+void gather_FDBAR(void)
+{
+	fdbar.FLVALSIG = fm[0];
+	fdbar.FLMAP0   = fm[1];
+	fdbar.FLMAP1   = fm[2];
+	fdbar.FLMAP2   = fm[3];
+
+	unpack_FDBAR();
 }
 
 void dump_FDBAR(void)
@@ -192,11 +197,8 @@ void dump_FDBAR(void)
 	printf("0x%8.8x  FMSBA Flash MCH Strap Base Address\n", fdbar.FMSBA);
 }
 
-void gather_FCBA(void)
+void unpack_FCBA(void)
 {
-	fcba.FLCOMP = fm[(fdbar.FCBA >> 2) + 0];
-	fcba.FLILL  = fm[(fdbar.FCBA >> 2) + 1];
-
 	fcba.freq_read_id   = (fcba.FLCOMP >> 27) & 0x07;
 	fcba.freq_write     = (fcba.FLCOMP >> 24) & 0x07;
 	fcba.freq_fastread  = (fcba.FLCOMP >> 21) & 0x07;
@@ -209,6 +211,14 @@ void gather_FCBA(void)
 	fcba.invalid_instr1 = (fcba.FLILL  >> 16) & 0xff;
 	fcba.invalid_instr2 = (fcba.FLILL  >>  8) & 0xff;
 	fcba.invalid_instr3 = (fcba.FLILL  >>  0) & 0xff;
+}
+
+void gather_FCBA(void)
+{
+	fcba.FLCOMP = fm[(fdbar.FCBA >> 2) + 0];
+	fcba.FLILL  = fm[(fdbar.FCBA >> 2) + 1];
+
+	unpack_FCBA();
 }
 
 void dump_FCBA(void)
@@ -261,13 +271,8 @@ void dump_FCBA(void)
 	printf("0x%2.2x        invalid instr 3\n", fcba.invalid_instr3);
 }
 
-void gather_FRBA(void)
+void unpack_FRBA(void)
 {
-	frba.FLREG0 = fm[(fdbar.FRBA >> 2) + 0];
-	frba.FLREG1 = fm[(fdbar.FRBA >> 2) + 1];
-	frba.FLREG2 = fm[(fdbar.FRBA >> 2) + 2];
-	frba.FLREG3 = fm[(fdbar.FRBA >> 2) + 3];
-
 	frba.reg0_limit = (frba.FLREG0 >>  4) & 0x01fff000;
 	frba.reg0_base  = (frba.FLREG0 << 12) & 0x01fff000;
 	frba.reg1_limit = (frba.FLREG1 >>  4) & 0x01fff000;
@@ -276,6 +281,16 @@ void gather_FRBA(void)
 	frba.reg2_base  = (frba.FLREG2 << 12) & 0x01fff000;
 	frba.reg3_limit = (frba.FLREG3 >>  4) & 0x01fff000;
 	frba.reg3_base  = (frba.FLREG3 << 12) & 0x01fff000;
+}
+
+void gather_FRBA(void)
+{
+	frba.FLREG0 = fm[(fdbar.FRBA >> 2) + 0];
+	frba.FLREG1 = fm[(fdbar.FRBA >> 2) + 1];
+	frba.FLREG2 = fm[(fdbar.FRBA >> 2) + 2];
+	frba.FLREG3 = fm[(fdbar.FRBA >> 2) + 3];
+
+	unpack_FRBA();
 }
 
 void dump_FRBA(void)
@@ -298,12 +313,8 @@ void dump_FRBA(void)
 	printf("0x%8.8x  region 3 base  ( GbE )\n", frba.reg3_base );
 }
 
-void gather_FMBA(void)
+void unpack_FMBA(void)
 {
-	fmba.FLMSTR1 = fm[(fdbar.FMBA >> 2) + 0];
-	fmba.FLMSTR2 = fm[(fdbar.FMBA >> 2) + 1];
-	fmba.FLMSTR3 = fm[(fdbar.FMBA >> 2) + 2];
-
 	fmba.BIOS_GbE_write   = (fmba.FLMSTR1 >> 27) & 0x01;
 	fmba.BIOS_ME_write    = (fmba.FLMSTR1 >> 26) & 0x01;
 	fmba.BIOS_BIOS_write  = (fmba.FLMSTR1 >> 25) & 0x01;
@@ -330,6 +341,15 @@ void gather_FMBA(void)
 	fmba.GbE_ME_read      = (fmba.FLMSTR3 >> 18) & 0x01;
 	fmba.GbE_BIOS_read    = (fmba.FLMSTR3 >> 17) & 0x01;
 	fmba.GbE_descr_read   = (fmba.FLMSTR3 >> 16) & 0x01;
+}
+
+void gather_FMBA(void)
+{
+	fmba.FLMSTR1 = fm[(fdbar.FMBA >> 2) + 0];
+	fmba.FLMSTR2 = fm[(fdbar.FMBA >> 2) + 1];
+	fmba.FLMSTR3 = fm[(fdbar.FMBA >> 2) + 2];
+
+	unpack_FMBA();
 }
 
 void dump_FMBA(void)
@@ -368,11 +388,8 @@ void dump_FMBA(void)
 	printf("GbE  can %s read  descr\n", fmba.GbE_descr_read   ? "   " : "NOT");
 }
 
-void gather_FISBA(void)
+void unpack_FISBA(void)
 {
-	fisba.STRP0 = fm[(fdbar.FISBA >> 2) + 0];
-	fisba.STRP1 = fm[(fdbar.FMSBA >> 2) + 0];
-
 	fisba.ME_smbus_addr2   = (fisba.STRP0 >> 25) & 0x7f;
 	fisba.ME_smbus_2_sel   = (fisba.STRP0 >> 23) & 0x01;
 	fisba.SPI_CS1          = (fisba.STRP0 >> 22) & 0x01;
@@ -384,6 +401,14 @@ void gather_FISBA(void)
 	fisba.ME_disable_A     = (fisba.STRP0 >>  0) & 0x01;
 
 	fisba.ME_disable_B     = (fisba.STRP1 >>  0) & 0x01;
+}
+
+void gather_FISBA(void)
+{
+	fisba.STRP0 = fm[(fdbar.FISBA >> 2) + 0];
+	fisba.STRP1 = fm[(fdbar.FMSBA >> 2) + 0];
+
+	unpack_FISBA();
 }
 
 void dump_FISBA(void)
@@ -421,9 +446,8 @@ void dump_FISBA(void)
 	printf("ME B is %sabled\n", fisba.ME_disable_B ? "dis" : "en");
 }
 
-void gather_FLUMAP(void) {
-	flumap.FLUMAP1 = fm[(0x0efc >> 2) + 0];
-
+void unpack_FLUMAP(void)
+{
 	flumap.VTL  = (flumap.FLUMAP1 >> 8) & 0x00ff;
 	flumap.VTBA = (flumap.FLUMAP1 << 4) & 0x0ff0;
 
@@ -436,6 +460,13 @@ void gather_FLUMAP(void) {
 		flumap.JID[i]  = fm[(flumap.VTBA >> 2) + i * 2 + 0];
 		flumap.VSCC[i] = fm[(flumap.VTBA >> 2) + i * 2 + 1];
 	}
+}
+
+void gather_FLUMAP(void)
+{
+	flumap.FLUMAP1 = fm[(0x0efc >> 2) + 0];
+
+	unpack_FLUMAP();
 }
 
 void dump_FLUMAP(void)
@@ -570,6 +601,26 @@ void dump_file_GbE(char * fn)
 	close(f);
 }
 
+void gather_sections(void)
+{
+	gather_FDBAR();
+	gather_FCBA();
+	gather_FRBA();
+	gather_FMBA();
+	gather_FISBA();
+	gather_FLUMAP();
+}
+
+void dump_sections(void)
+{
+	dump_FDBAR();
+	dump_FCBA();
+	dump_FRBA();
+	dump_FMBA();
+	dump_FISBA();
+	dump_FLUMAP();
+}
+
 void dump_files(char * f)
 {
 	printf("=== dumping section files ===\n");
@@ -617,19 +668,9 @@ int main(int argc, char ** argv)
 		exit(0);
 	}
 
-	gather_FDBAR();
-	gather_FCBA();
-	gather_FRBA();
-	gather_FMBA();
-	gather_FISBA();
-	gather_FLUMAP();
+	gather_sections();
 
-	dump_FDBAR();
-	dump_FCBA();
-	dump_FRBA();
-	dump_FMBA();
-	dump_FISBA();
-	dump_FLUMAP();
+	dump_sections();
 
 	dump_files(argv[1]);
 
