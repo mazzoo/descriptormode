@@ -26,6 +26,8 @@ int f;         /* file descriptor to flash file */
 int fs;        /* file size */
 uint32_t * fm; /* mmap'd file */
 
+uint8_t pch_bug_offset = 0;
+
 struct flash_descriptor {
 	uint32_t FLVALSIG; /* 0x00 */
 	uint32_t FLMAP0;   /* 0x04 */
@@ -165,10 +167,10 @@ void unpack_FDBAR(void)
 
 void gather_FDBAR(void)
 {
-	fdbar.FLVALSIG = fm[0];
-	fdbar.FLMAP0   = fm[1];
-	fdbar.FLMAP1   = fm[2];
-	fdbar.FLMAP2   = fm[3];
+	fdbar.FLVALSIG = fm[0 + pch_bug_offset];
+	fdbar.FLMAP0   = fm[1 + pch_bug_offset];
+	fdbar.FLMAP1   = fm[2 + pch_bug_offset];
+	fdbar.FLMAP2   = fm[3 + pch_bug_offset];
 
 	unpack_FDBAR();
 }
@@ -494,15 +496,16 @@ void dump_file_descriptor(char * fn)
 	snprintf(n, strlen(fn) + 11, "%s.descr.bin", fn);
 	printf("\n");
 	printf("+++ dumping %s ... ", n);
-	int f = open(n, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
-	if (f < 0)
+	int fh = open(n, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+	free(n);
+	if (fh < 0)
 	{
 		printf("ERROR: couldn't open(%s): %s\n", n, strerror(errno));
 		exit(1);
 	}
 
 	int ret;
-	ret = write(f, &fm[frba.reg0_base >> 2], frba.reg0_limit);
+	ret = write(fh, &fm[frba.reg0_base >> 2], frba.reg0_limit);
 	if (ret != frba.reg0_limit)
 	{
 		printf("FAILED.\n");
@@ -511,7 +514,7 @@ void dump_file_descriptor(char * fn)
 
 	printf("done.\n");
 
-	close(f);
+	close(fh);
 }
 
 void dump_file_BIOS(char * fn)
@@ -520,15 +523,16 @@ void dump_file_BIOS(char * fn)
 	snprintf(n, strlen(fn) + 10, "%s.BIOS.bin", fn);
 	printf("\n");
 	printf("+++ dumping %s ... ", n);
-	int f = open(n, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
-	if (f < 0)
+	int fh = open(n, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+	free(n);
+	if (fh < 0)
 	{
 		printf("ERROR: couldn't open(%s): %s\n", n, strerror(errno));
 		exit(1);
 	}
 
 	int ret;
-	ret = write(f, &fm[frba.reg1_base >> 2], frba.reg1_limit);
+	ret = write(fh, &fm[frba.reg1_base >> 2], frba.reg1_limit);
 	if (ret != frba.reg1_limit)
 	{
 		printf("FAILED.\n");
@@ -537,7 +541,7 @@ void dump_file_BIOS(char * fn)
 
 	printf("done.\n");
 
-	close(f);
+	close(fh);
 }
 
 void dump_file_ME(char * fn)
@@ -546,15 +550,16 @@ void dump_file_ME(char * fn)
 	snprintf(n, strlen(fn) + 8, "%s.ME.bin", fn);
 	printf("\n");
 	printf("+++ dumping %s ... ", n);
-	int f = open(n, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
-	if (f < 0)
+	int fh = open(n, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+	free(n);
+	if (fh < 0)
 	{
 		printf("ERROR: couldn't open(%s): %s\n", n, strerror(errno));
 		exit(1);
 	}
 
 	int ret;
-	ret = write(f, &fm[frba.reg2_base >> 2], frba.reg2_limit);
+	ret = write(fh, &fm[frba.reg2_base >> 2], frba.reg2_limit);
 	if (ret != frba.reg2_limit)
 	{
 		printf("FAILED.\n");
@@ -563,7 +568,7 @@ void dump_file_ME(char * fn)
 
 	printf("done.\n");
 
-	close(f);
+	close(fh);
 }
 
 void dump_file_GbE(char * fn)
@@ -572,15 +577,16 @@ void dump_file_GbE(char * fn)
 	snprintf(n, strlen(fn) + 9, "%s.GbE.bin", fn);
 	printf("\n");
 	printf("+++ dumping %s ... ", n);
-	int f = open(n, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
-	if (f < 0)
+	int fh = open(n, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+	free(n);
+	if (fh < 0)
 	{
 		printf("ERROR: couldn't open(%s): %s\n", n, strerror(errno));
 		exit(1);
 	}
 
 	int ret;
-	ret = write(f, &fm[frba.reg3_base >> 2], frba.reg3_limit);
+	ret = write(fh, &fm[frba.reg3_base >> 2], frba.reg3_limit);
 	if (ret != frba.reg3_limit)
 	{
 		printf("FAILED.\n");
@@ -598,7 +604,7 @@ void dump_file_GbE(char * fn)
 		pMAC[5]
 		);
 
-	close(f);
+	close(fh);
 }
 
 void gather_sections(void)
@@ -621,17 +627,17 @@ void dump_sections(void)
 	dump_FLUMAP();
 }
 
-void dump_files(char * f)
+void dump_files(char * n)
 {
 	printf("=== dumping section files ===\n");
 	if (frba.reg0_limit)
-		dump_file_descriptor(f);
+		dump_file_descriptor(n);
 	if (frba.reg1_limit)
-		dump_file_BIOS(f);
+		dump_file_BIOS(n);
 	if (frba.reg2_limit)
-		dump_file_ME(f);
+		dump_file_ME(n);
 	if (frba.reg3_limit)
-		dump_file_GbE(f);
+		dump_file_GbE(n);
 }
 
 void usage(void)
@@ -670,14 +676,19 @@ int main(int argc, char ** argv)
 		ret = read(f, fm, fs);
 		if (ret != fs) usage();
 	}
+	printf("flash image is %d [0x%x] bytes\n", fs, fs);
 	close(f);
 
-	if (fm[0] != DESCRIPTOR_MODE_MAGIC)
+	if ( (fm[0] != DESCRIPTOR_MODE_MAGIC) &&
+	     (fm[4] != DESCRIPTOR_MODE_MAGIC) )
 	{
 		printf("not in descriptor mode\n");
 		exit(0);
 	}
 
+	if (fm[4] == DESCRIPTOR_MODE_MAGIC)
+		pch_bug_offset = 4;
+		
 	gather_sections();
 
 	dump_sections();
