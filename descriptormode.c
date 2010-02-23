@@ -660,7 +660,17 @@ int main(int argc, char ** argv)
 	if (fs < 0) usage();
 
 	fm = mmap(NULL, fs, PROT_READ, MAP_PRIVATE, f, 0);
-	if (fm == (void *) -1) usage();
+	if (fm == (void *) -1)
+	{
+		/* fallback for stupid OSes like cygwin */
+		int ret;
+		fm = malloc(fs);
+		if (!fm) usage();
+		lseek(f, 0, SEEK_SET);
+		ret = read(f, fm, fs);
+		if (ret != fs) usage();
+	}
+	close(f);
 
 	if (fm[0] != DESCRIPTOR_MODE_MAGIC)
 	{
