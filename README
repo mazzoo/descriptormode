@@ -1,5 +1,13 @@
 just run descriptormode without any arguments to get some basic usage.
 
+OBSOLETE
+~~~~~~~~
+this still works, but is obsolted today (2013). this code and support
+for more chipsets has been integrated into flashrom by Stefan Tauner
+and others.
+
+GOTO https://flashrom.org/Downloads
+
 TODO
 ~~~~
 - reverse the path, as in assemble a descriptormode image from various
